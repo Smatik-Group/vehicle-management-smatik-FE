@@ -13,6 +13,7 @@ import Home from "./pages/Home";
 import Wohnmobile from "./pages/Wohnmobile";
 import Nutzfahrzeuge from "./pages/Nutzfahrzeuge";
 import Einstellungen from "./pages/Einstellungen";
+import { ToastContainer } from "react-toastify";
 
 // Create an AuthContext to manage authentication state
 const AuthContext = createContext();
@@ -75,7 +76,8 @@ const MainContent = () => {
   const location = useLocation();
   const hideSidebarPaths = ["/login"];
 
-  return (
+  return (<>        
+  <ToastContainer />
     <div className="flex">
       {!hideSidebarPaths.includes(location.pathname) && <Sidebar />}
       <div className="flex-1">
@@ -102,6 +104,7 @@ const MainContent = () => {
         </Routes>
       </div>
     </div>
+    </>
   );
 };
 

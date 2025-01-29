@@ -10,6 +10,7 @@ import {
   ArrowLeftIcon,
 
 } from "@heroicons/react/24/outline";
+import { FolderAddFilled, LogoutOutlined } from "@ant-design/icons";
 
 const Sidebar = () => {
   const [isMinimized, setIsMinimized] = useState(false);
@@ -57,6 +58,13 @@ const Sidebar = () => {
             </li>
           ))}
         </ul>
+        <button
+        className="m-5 flex gap-2 items-center"
+        onClick={()=>{
+          localStorage.removeItem("token");
+          window.location.href = "/login";
+        }}
+        ><LogoutOutlined />Logout</button>
       </nav>
 
       <div className="p-4">
