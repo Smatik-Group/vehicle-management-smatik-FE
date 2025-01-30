@@ -7,6 +7,7 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css"; // Import the CSS for datepicker
 import { toast } from "react-toastify";
 
+
 // Validation schema using Joi
 const vehicleSchema = Joi.object().keys({
   tg: Joi.string().required(),
@@ -46,6 +47,16 @@ const vehicleSchema = Joi.object().keys({
   serienmaesigge_ausstatung: Joi.string().optional(),
   erstellungsdatum: Joi.date().optional(),
   aktualisierungsdatum: Joi.date().optional(),
+  neupreis: Joi.number().optional(),
+  batteriekapazitaet: Joi.number().optional(),
+  stromverbrauch: Joi.number().optional(),
+  reichweite: Joi.number().optional(),
+  ladeleistung: Joi.number().optional(),
+  ladezeit: Joi.number().optional(),
+  schnellladeleistung: Joi.number().optional(),
+  schnellladezeit: Joi.number().optional(),
+  elektrisch: Joi.boolean().optional(),
+
 });
 
 const getInitialCar = () => ({
@@ -79,13 +90,23 @@ const getInitialCar = () => ({
   nutzlast: 0,
   radstand_mm: 0,
   gesamtgewicht: 0,
-  anhaengelast_gebremst: 0,
+  anhaengelast_gebremst: null,  // Defaulted to null in case it's optional
   leergewicht: 0,
   lizenzkategorie: "",
   motorbauart: "",
   serienmaesigge_ausstatung: "",
   erstellungsdatum: null,
   aktualisierungsdatum: null,
+  neupreis: 0,                 // Defaulted to null since it's optional
+  batteriekapazitaet: 0,       // Defaulted to null since it's optional
+  stromverbrauch: 0,           // Defaulted to null since it's optional
+  reichweite: 0,               // Defaulted to null since it's optional
+  ladeleistung: 0,             // Defaulted to null since it's optional
+  ladezeit: 0,                 // Defaulted to null since it's optional
+  schnellladeleistung: 0,      // Defaulted to null since it's optional
+  schnellladezeit: 0,          // Defaulted to null since it's optional
+  elektrisch: false,              // Defaulted to false
+
 });
 
 const Personenwagen = () => {
@@ -105,7 +126,7 @@ const Personenwagen = () => {
 
   useEffect(() => {
     fetchCars();
-  }, []);
+  }, [saving]);
 
   const handleSearchChange = (e) => {
     setSearch(e.target.value);
@@ -188,6 +209,7 @@ const Personenwagen = () => {
   
     // Validate against the modified car data
     const { error } = vehicleSchema.validate(carDataToSend, { abortEarly: false });
+    console.log('error: ', error);
     console.log('carDataToSend: ', carDataToSend);
     
     if (error) {
