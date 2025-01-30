@@ -107,9 +107,22 @@ const Personenwagen = () => {
     fetchCars();
   }, []);
 
+  const handleSearchChange = (e) => {
+    setSearch(e.target.value);
+  };
+  
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    fetchCars(1); // Reset to the first page when searching
+  };
+  
   const fetchCars = async (pageNumber = 1) => {
     setLoading(true);
-    const params = { page: pageNumber,  };
+    const params = { page: pageNumber };
+    if (search.trim()) {
+      params.search = search.trim(); // Include search query only if it exists
+    }
+    
     try {
       const response = await axios.get(`${BASE_URL}/vehicle`, { params });
       const data = response.data;
@@ -126,12 +139,8 @@ const Personenwagen = () => {
       setLoading(false);
     }
   };
-
-  const handleSearch = (e) => {
-      e.preventDefault();
-      setSearch(e.target.value);
-      fetchCars(1); // Reset to the first page when searching
-  };
+  
+  
 
   const handlePageChange = (pageNumber) => {
     if (pageNumber >= 1 && pageNumber <= pagination.totalPages) {
@@ -258,13 +267,22 @@ const Personenwagen = () => {
       <Header />
 
       <div className="mb-6 flex justify-between items-center">
-        {/* <input
-                    type="text"
-                    placeholder="Suche nach Typenscheinnummer (TG)"
-                    value={search}
-                    onChange={handleSearch}
-                    className="w-1/2 p-3 border border-gray-600 rounded-lg bg-gray-700 text-white focus:ring-2 focus:ring-blue-500"
-                /> */}
+      <div className="flex gap-2">
+    <input
+      type="text"
+      placeholder="Suche nach TG ,Marke"
+      value={search}
+      onChange={handleSearchChange}
+      onKeyDown={(e) => e.key === "Enter" && handleSearchSubmit(e)}
+      className="w-full p-3 border border-gray-600 rounded-lg bg-gray-700 text-white focus:ring-2 focus:ring-blue-500"
+    />
+    <button
+      onClick={handleSearchSubmit}
+      className="p-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+    >
+      Search
+    </button>
+  </div>
         <button
           onClick={handleAddNewCar}
           disabled={saving}
