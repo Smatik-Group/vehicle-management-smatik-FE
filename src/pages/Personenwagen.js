@@ -4,9 +4,8 @@ import Header from "../components/Header";
 import { BASE_URL } from "../config";
 import Joi from "joi";
 import DatePicker from "react-datepicker";
-import "react-datepicker/dist/react-datepicker.css"; // Import the CSS for datepicker
+import "react-datepicker/dist/react-datepicker.css";
 import { toast } from "react-toastify";
-
 
 // Validation schema using Joi
 const vehicleSchema = Joi.object().keys({
@@ -56,7 +55,6 @@ const vehicleSchema = Joi.object().keys({
   schnellladeleistung: Joi.number().optional(),
   schnellladezeit: Joi.number().optional(),
   elektrisch: Joi.boolean().optional(),
-
 });
 
 const getInitialCar = () => ({
@@ -90,23 +88,22 @@ const getInitialCar = () => ({
   nutzlast: 0,
   radstand_mm: 0,
   gesamtgewicht: 0,
-  anhaengelast_gebremst: null,  // Defaulted to null in case it's optional
+  anhaengelast_gebremst: null,
   leergewicht: 0,
   lizenzkategorie: "",
   motorbauart: "",
   serienmaesigge_ausstatung: "",
   erstellungsdatum: null,
   aktualisierungsdatum: null,
-  neupreis: 0,                 // Defaulted to null since it's optional
-  batteriekapazitaet: 0,       // Defaulted to null since it's optional
-  stromverbrauch: 0,           // Defaulted to null since it's optional
-  reichweite: 0,               // Defaulted to null since it's optional
-  ladeleistung: 0,             // Defaulted to null since it's optional
-  ladezeit: 0,                 // Defaulted to null since it's optional
-  schnellladeleistung: 0,      // Defaulted to null since it's optional
-  schnellladezeit: 0,          // Defaulted to null since it's optional
-  elektrisch: false,              // Defaulted to false
-
+  neupreis: 0,
+  batteriekapazitaet: 0,
+  stromverbrauch: 0,
+  reichweite: 0,
+  ladeleistung: 0,
+  ladezeit: 0,
+  schnellladeleistung: 0,
+  schnellladezeit: 0,
+  elektrisch: false,
 });
 
 const Personenwagen = () => {
@@ -123,45 +120,53 @@ const Personenwagen = () => {
   const [currentCar, setCurrentCar] = useState(getInitialCar());
   const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);
+  const [limit,setLimit] =useState(5) ;
 
+  // useEffect(() => {
+
+  //   fetchCars();
+  // }, [limit]);
   useEffect(() => {
-    fetchCars();
-  }, [saving]);
+    console.log('search: ', search);
+    if (search.length >= 3 || search.length === 0 || limit)  {
+      
+      fetchCars(1);
+    }
+  }, [search,limit]);
 
   const handleSearchChange = (e) => {
-    setSearch(e.target.value);
+    const value = e.target.value;
+    setSearch(value);
   };
-  
+
   const handleSearchSubmit = (e) => {
     e.preventDefault();
     fetchCars(1); // Reset to the first page when searching
   };
-  
-  const fetchCars = async (pageNumber = 1) => {
+
+  const fetchCars = async (pageNumber = pagination.currentPage) => {
     setLoading(true);
-    const params = { page: pageNumber };
+    const params = { page: pageNumber,limit:limit};
     if (search.trim()) {
       params.search = search.trim(); // Include search query only if it exists
     }
-    
+
     try {
       const response = await axios.get(`${BASE_URL}/vehicle`, { params });
       const data = response.data;
       setCars(data.results.results);
       setPagination({
-        ...pagination,
-        currentPage: pageNumber,
-        totalPages: data.pagination.totalPages,
-        totalRecords: data.pagination.totalRecords,
+        currentPage: data.results.pagination.currentPage,
+        totalPages: data.results.pagination.totalPages,
+        totalRecords: data.results.pagination.totalRecords,
       });
     } catch (error) {
       console.error("Error fetching cars:", error);
+      toast.error("Failed to fetch cars.");
     } finally {
       setLoading(false);
     }
   };
-  
-  
 
   const handlePageChange = (pageNumber) => {
     if (pageNumber >= 1 && pageNumber <= pagination.totalPages) {
@@ -184,36 +189,29 @@ const Personenwagen = () => {
   };
 
   const handleDeleteCar = async (carId) => {
-    const token = localStorage.getItem("token"); // Get the token from localStorage
     try {
       await axios.delete(`${BASE_URL}/vehicle/${carId}`, {
         headers: {
-          Authorization: `Bearer ${token}`, // Add the token to the Authorization header
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
       });
       toast.info("Car deleted successfully");
       fetchCars(pagination.currentPage);
     } catch (error) {
-      toast.error(error.response.data.message);
-      // console.error('Error deleting car:', error.response.data.message);
+      toast.error("Failed to delete car.");
+      console.error("Error deleting car:", error);
     }
   };
 
   const handleSaveCar = async () => {
-    const token = localStorage.getItem("token"); // Get the token from localStorage
-    
-    // Exclude ID, createdAt, and updatedAt when isEditing is true
     const carDataToSend = isEditing
       ? (({ ID, createdAt, updatedAt, ...rest }) => rest)(currentCar)
       : currentCar;
-  
-    // Validate against the modified car data
-    const { error } = vehicleSchema.validate(carDataToSend, { abortEarly: false });
-    console.log('error: ', error);
-    console.log('carDataToSend: ', carDataToSend);
-    
+
+    const { error } = vehicleSchema.validate(carDataToSend, {
+      abortEarly: false,
+    });
     if (error) {
-      console.log('error: ', error);
       const validationErrors = {};
       error.details.forEach((detail) => {
         validationErrors[detail.path[0]] = detail.message;
@@ -221,55 +219,35 @@ const Personenwagen = () => {
       setErrors(validationErrors);
       return;
     }
-  
+
     const method = isEditing
       ? () =>
           axios.put(`${BASE_URL}/vehicle/${currentCar.ID}`, carDataToSend, {
             headers: {
-              Authorization: `Bearer ${token}`, // Add the token to the Authorization header
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
             },
           })
       : () =>
           axios.post(`${BASE_URL}/vehicle`, carDataToSend, {
             headers: {
-              Authorization: `Bearer ${token}`, // Add the token to the Authorization header
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
             },
           });
-  
+
     setSaving(true);
-  
+
     try {
       const response = await method();
-      console.log("response123123 : ", response.data.message.de);
-      toast.success(
-        `en: ${response.data.message.en} \n de: ${response.data.message.de}`
-      );
+      toast.success(`Car saved successfully: ${response.data.message.en}`);
       setIsModalOpen(false);
-      setErrors({});
       fetchCars(pagination.currentPage);
     } catch (error) {
-      // Check for error data and display a custom message
-      toast.error(error.response.data.message);
-      if (
-        error.response &&
-        error.response.data &&
-        error.response.data.message
-      ) {
-        setErrors({
-          general: error.response.data.message, // Display the error message from the server
-        });
-      } else {
-        setErrors({
-          general:
-            "Ein Fehler ist aufgetreten und die Daten konnten nicht gespeichert werden.", // Default error message
-        });
-      }
+      toast.error("Failed to save car.");
+      console.error("Error saving car:", error);
     } finally {
       setSaving(false);
     }
   };
-  
-  
 
   const handleCancel = () => {
     setIsModalOpen(false);
@@ -280,31 +258,29 @@ const Personenwagen = () => {
     setCurrentCar({ ...currentCar, [key]: date });
   };
 
-  if (loading) {
-    return <div className="text-center text-white">Lade Fahrzeuge...</div>;
-  }
+ 
 
   return (
     <div className="p-6 min-h-screen bg-gradient-to-r from-gray-900 to-gray-800 text-white">
       <Header />
 
       <div className="mb-6 flex justify-between items-center">
-      <div className="flex gap-2">
-    <input
-      type="text"
-      placeholder="Suche nach TG ,Marke"
-      value={search}
-      onChange={handleSearchChange}
-      onKeyDown={(e) => e.key === "Enter" && handleSearchSubmit(e)}
-      className="w-full p-3 border border-gray-600 rounded-lg bg-gray-700 text-white focus:ring-2 focus:ring-blue-500"
-    />
-    <button
-      onClick={handleSearchSubmit}
-      className="p-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
-    >
-      Search
-    </button>
-  </div>
+        <div className="flex gap-2">
+          <input
+            type="text"
+            placeholder="Suche nach TG, Marke..."
+            value={search}
+            onChange={handleSearchChange}
+            onKeyDown={(e) => e.key === "Enter" && handleSearchSubmit(e)}
+            className="w-full p-3 border border-gray-600 rounded-lg bg-gray-700 text-white focus:ring-2 focus:ring-blue-500"
+          />
+          <button
+            onClick={handleSearchSubmit}
+            className="p-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+          >
+            Suche
+          </button>
+        </div>
         <button
           onClick={handleAddNewCar}
           disabled={saving}
@@ -315,6 +291,12 @@ const Personenwagen = () => {
           Neues Fahrzeug hinzufügen
         </button>
       </div>
+      {
+        loading? (
+         <div className="text-center text-white">Lade Fahrzeuge...</div>
+ 
+        ):(
+          <div>
 
       <div className="overflow-x-auto">
         <table className="min-w-full backdrop-blur-md bg-opacity-20 bg-gray-700 rounded-lg shadow-md">
@@ -375,6 +357,20 @@ const Personenwagen = () => {
           Seite {pagination.currentPage} von {pagination.totalPages}
         </p>
         <div className="flex space-x-2">
+        <select
+        value={limit}
+  className="bg-white text-gray-700 border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm"
+  onChange={(e) => setLimit(e.target.value)}
+>
+  <option className="bg-transparent" value="5">5 Fahrzeuge pro Seite</option>
+  <option className="bg-transparent" value="10">10 Fahrzeuge pro Seite</option>
+  <option className="bg-transparent" value="20">20 Fahrzeuge pro Seite</option>
+  <option className="bg-transparent" value="50">50 Fahrzeuge pro Seite</option>
+  <option className="bg-transparent" value="100">100 Fahrzeuge pro Seite</option>
+  <option className="bg-transparent" value="200">200 Fahrzeuge pro Seite</option>
+  <option className="bg-transparent" value="500">500 Fahrzeuge pro Seite</option>
+</select>
+
           <button
             onClick={() => handlePageChange(pagination.currentPage - 1)}
             disabled={pagination.currentPage === 1}
@@ -410,6 +406,9 @@ const Personenwagen = () => {
           </button>
         </div>
       </div>
+</div>
+        )}
+      
 
       {isModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
