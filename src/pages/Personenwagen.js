@@ -120,7 +120,7 @@ const Personenwagen = () => {
   const [currentCar, setCurrentCar] = useState(getInitialCar());
   const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);
-  const [limit, setLimit] = useState(5);
+  const [limit, setLimit] = useState(10);
 
   // useEffect(() => {
 
