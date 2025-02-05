@@ -161,7 +161,7 @@ const Personenwagen = () => {
       });
     } catch (error) {
       console.error("Error fetching cars:", error);
-      toast.error("Failed to fetch cars.");
+      toast.error("Car Not Found.");
     } finally {
       setLoading(false);
     }
