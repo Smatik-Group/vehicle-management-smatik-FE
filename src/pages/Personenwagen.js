@@ -8,103 +8,108 @@ import "react-datepicker/dist/react-datepicker.css";
 import { toast } from "react-toastify";
 
 // Validation schema using Joi
-const vehicleSchema = Joi.object().keys({
-  tg: Joi.string().required(),
-  fahrzeugart: Joi.string().default("Personenwagen"),
-  marke: Joi.string().required(),
-  modell: Joi.string().required(),
-  inverkehr_von: Joi.date().required(),
-  inverkehr_bis: Joi.date().optional(),
-  aufbau: Joi.string().required(),
-  treibstoff: Joi.string().required(),
-  antrieb: Joi.string().required(),
-  tueren: Joi.number().integer().required(),
-  sitze: Joi.number().integer().required(),
-  ps_kw: Joi.string().required(),
-  hubraum_cm3: Joi.number().integer().required(),
-  zylinder: Joi.number().integer().optional(),
-  anzahl_gaenge: Joi.number().integer().required(),
-  inverkehrsetzung: Joi.date().optional(),
-  co2_emission_g_km: Joi.number().required(),
-  energieetikette: Joi.string().required(),
-  abgasnorm: Joi.string().required(),
-  verbrauch_stadt: Joi.number().required(),
-  verbrauch_land: Joi.number().required(),
-  verbrauch_l_100km: Joi.number().required(),
-  euro_norm: Joi.string().required(),
-  chassisnummer: Joi.string().required(),
-  laenge: Joi.number().required(),
-  breite: Joi.number().required(),
-  hoehe: Joi.number().required(),
-  nutzlast: Joi.number().required(),
-  radstand_mm: Joi.number().integer().required(),
-  gesamtgewicht: Joi.number().required(),
-  anhaengelast_gebremst: Joi.number().optional(),
-  leergewicht: Joi.number().required(),
-  lizenzkategorie: Joi.string().required(),
-  motorbauart: Joi.string().required(),
-  serienmaesigge_ausstatung: Joi.string().optional(),
-  erstellungsdatum: Joi.date().optional(),
-  aktualisierungsdatum: Joi.date().optional(),
-  neupreis: Joi.number().optional(),
-  batteriekapazitaet: Joi.number().optional(),
-  stromverbrauch: Joi.number().optional(),
-  reichweite: Joi.number().optional(),
-  ladeleistung: Joi.number().optional(),
-  ladezeit: Joi.number().optional(),
-  schnellladeleistung: Joi.number().optional(),
-  schnellladezeit: Joi.number().optional(),
-  elektrisch: Joi.boolean().optional(),
-});
+const vehicleSchema = Joi.object({
+  tg: Joi.string().required().label("TG"),
+  marke: Joi.string().required().label("Marke"),
+  modell: Joi.string().required().label("Modell"),
+  fahrzeugart: Joi.string().default("Personenwagen").label("Fahrzeugart"),
+  inverkehr_von: Joi.date().optional().allow(null, "").label("Inverkehr von"),
+  inverkehr_bis: Joi.date().optional().allow(null, "").label("Inverkehr bis"),
+  aufbau: Joi.string().optional().allow(null, "").label("Aufbau"),
+  treibstoff: Joi.string().optional().allow(null, "").label("Treibstoff"),
+  antrieb: Joi.string().optional().allow(null, "").label("Antrieb"),
+  tueren: Joi.number().optional().allow(null).label("Türen"),
+  sitze: Joi.number().optional().allow(null).label("Sitze"),
+  ps_kw: Joi.number().optional().allow(null, "").label("PS/KW"),
+  hubraum_cm3: Joi.number().optional().allow(null).label("Hubraum (cm³)"),
+  zylinder: Joi.number().optional().allow(null).label("Zylinder"),
+  anzahl_gaenge: Joi.number().optional().allow(null).label("Anzahl Gänge"),
+  inverkehrsetzung: Joi.date()
+    .optional()
+    .allow(null, "")
+    .label("Inverkehrsetzung"),
+  co2_emission_g_km: Joi.number()
+    .optional()
+    .allow(null)
+    .label("CO2-Emission (g/km)"),
+  energieetikette: Joi.string()
+    .optional()
+    .allow(null, "")
+    .label("Energieetikette"),
+  abgasnorm: Joi.string().optional().allow(null, "").label("Abgasnorm"),
+  verbrauch_stadt: Joi.number().optional().allow(null).label("Verbrauch Stadt"),
+  verbrauch_land: Joi.number().optional().allow(null).label("Verbrauch Land"),
+  verbrauch_l_100km: Joi.number()
+    .optional()
+    .allow(null)
+    .label("Verbrauch (l/100km)"),
+  euro_norm: Joi.string().optional().allow(null, "").label("Euro Norm"),
+  chassisnummer: Joi.string().optional().allow(null, "").label("Chassisnummer"),
+  laenge: Joi.number().optional().allow(null).label("Länge"),
+  breite: Joi.number().optional().allow(null).label("Breite"),
+  hoehe: Joi.number().optional().allow(null).label("Höhe"),
+  nutzlast: Joi.number().optional().allow(null).label("Nutzlast"),
+  radstand_mm: Joi.number().optional().allow(null).label("Radstand (mm)"),
+  gesamtgewicht: Joi.number().optional().allow(null).label("Gesamtgewicht"),
+}).unknown(); // Allows additional fields without validation errors
 
-const getInitialCar = () => ({
-  tg: "",
-  fahrzeugart: "Personenwagen",
-  marke: "",
-  modell: "",
-  inverkehr_von: null,
-  inverkehr_bis: null,
-  aufbau: "",
-  treibstoff: "",
-  antrieb: "",
-  tueren: 0,
-  sitze: 0,
-  ps_kw: "",
-  hubraum_cm3: 0,
-  zylinder: 0,
-  anzahl_gaenge: 0,
-  inverkehrsetzung: null,
-  co2_emission_g_km: 0,
-  energieetikette: "",
-  abgasnorm: "",
-  verbrauch_stadt: 0,
-  verbrauch_land: 0,
-  verbrauch_l_100km: 0,
-  euro_norm: "",
-  chassisnummer: "",
-  laenge: 0,
-  breite: 0,
-  hoehe: 0,
-  nutzlast: 0,
-  radstand_mm: 0,
-  gesamtgewicht: 0,
-  anhaengelast_gebremst: null,
-  leergewicht: 0,
-  lizenzkategorie: "",
-  motorbauart: "",
-  serienmaesigge_ausstatung: "",
-  erstellungsdatum: null,
-  aktualisierungsdatum: null,
-  neupreis: 0,
-  batteriekapazitaet: 0,
-  stromverbrauch: 0,
-  reichweite: 0,
-  ladeleistung: 0,
-  ladezeit: 0,
-  schnellladeleistung: 0,
-  schnellladezeit: 0,
-  elektrisch: false,
-});
+const getInitialCar = (data = {}) => {
+  const initialCar = {
+    tg: "",
+    fahrzeugart: "Personenwagen",
+    marke: "",
+    modell: "",
+    inverkehr_von: null,
+    inverkehr_bis: null,
+    aufbau: "",
+    treibstoff: "",
+    antrieb: "",
+    tueren: null,
+    sitze: null,
+    ps_kw: "",
+    hubraum_cm3: null,
+    zylinder: null,
+    anzahl_gaenge: null,
+    inverkehrsetzung: null,
+    co2_emission_g_km: null,
+    energieetikette: "",
+    abgasnorm: "",
+    verbrauch_stadt: null,
+    verbrauch_land: null,
+    verbrauch_l_100km: null,
+    euro_norm: "",
+    chassisnummer: null,
+    laenge: null,
+    breite: null,
+    hoehe: null,
+    nutzlast: null,
+    radstand_mm: null,
+    gesamtgewicht: null,
+    anhaengelast_gebremst: null,
+    leergewicht: null,
+    lizenzkategorie: "",
+    motorbauart: "",
+    serienmaesigge_ausstatung: "",
+    erstellungsdatum: null,
+    aktualisierungsdatum: null,
+    neupreis: null,
+    batteriekapazitaet: null,
+    stromverbrauch: null,
+    reichweite: null,
+    ladeleistung: null,
+    ladezeit: null,
+    schnellladeleistung: null,
+    schnellladezeit: null,
+    elektrisch: false,
+  };
+
+  // Ensure tg, marke, and modell are always required
+  if (!data.tg || !data.marke || !data.modell) {
+    return { tg: "", marke: "", modell: "", ...initialCar };
+  }
+
+  return { ...initialCar, ...data };
+};
 
 const Personenwagen = () => {
   const [cars, setCars] = useState([]);
@@ -161,7 +166,7 @@ const Personenwagen = () => {
       });
     } catch (error) {
       console.error("Error fetching cars:", error);
-      toast.error("Car Not Found.");
+      // toast.error("Car Not Found.");
     } finally {
       setLoading(false);
     }
@@ -237,7 +242,7 @@ const Personenwagen = () => {
 
     try {
       const response = await method();
-      toast.success(`Car saved successfully: ${response.data.message.en}`);
+      toast.success(`${response.data.message.en}`);
       setIsModalOpen(false);
       fetchCars(pagination.currentPage);
     } catch (error) {
@@ -470,9 +475,11 @@ const Personenwagen = () => {
                       <DatePicker
                         selected={currentCar[key]}
                         onChange={handleDateChange(key)}
-                        dateFormat="dd/MM/yyyy"
+                        dateFormat="MM/yyyy"
+                        showMonthYearPicker
                         className="w-full p-2 border border-gray-300 rounded-lg text-black"
-                        placeholderText="Datum auswählen"
+                        placeholderText="Monat und Jahr auswählen"
+                        minDate={new Date(2013, 0)} // January 2013
                       />
                     ) : (
                       <input
