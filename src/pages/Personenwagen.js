@@ -120,19 +120,18 @@ const Personenwagen = () => {
   const [currentCar, setCurrentCar] = useState(getInitialCar());
   const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);
-  const [limit,setLimit] =useState(5) ;
+  const [limit, setLimit] = useState(5);
 
   // useEffect(() => {
 
   //   fetchCars();
   // }, [limit]);
   useEffect(() => {
-    console.log('search: ', search);
-    if (search.length >= 3 || search.length === 0 || limit)  {
-      
+    console.log("search: ", search);
+    if (search.length >= 3 || search.length === 0 || limit) {
       fetchCars(1);
     }
-  }, [search,limit]);
+  }, [search, limit]);
 
   const handleSearchChange = (e) => {
     const value = e.target.value;
@@ -146,7 +145,7 @@ const Personenwagen = () => {
 
   const fetchCars = async (pageNumber = pagination.currentPage) => {
     setLoading(true);
-    const params = { page: pageNumber,limit:limit};
+    const params = { page: pageNumber, limit: limit };
     if (search.trim()) {
       params.search = search.trim(); // Include search query only if it exists
     }
@@ -248,6 +247,32 @@ const Personenwagen = () => {
       setSaving(false);
     }
   };
+  const getPageNumbers = (currentPage, totalPages) => {
+    const pageNumbers = [];
+    const maxVisiblePages = 7;
+
+    if (totalPages <= maxVisiblePages) {
+      // Show all pages if total pages are less than or equal to maxVisiblePages
+      for (let i = 1; i <= totalPages; i++) {
+        pageNumbers.push(i);
+      }
+    } else {
+      pageNumbers.push(1); // First page
+      if (currentPage > 4) pageNumbers.push("...");
+
+      const startPage = Math.max(2, currentPage - 1);
+      const endPage = Math.min(totalPages - 1, currentPage + 1);
+
+      for (let i = startPage; i <= endPage; i++) {
+        pageNumbers.push(i);
+      }
+
+      if (currentPage < totalPages - 3) pageNumbers.push("...");
+      pageNumbers.push(totalPages); // Last page
+    }
+
+    return pageNumbers;
+  };
 
   const handleCancel = () => {
     setIsModalOpen(false);
@@ -257,8 +282,6 @@ const Personenwagen = () => {
   const handleDateChange = (key) => (date) => {
     setCurrentCar({ ...currentCar, [key]: date });
   };
-
- 
 
   return (
     <div className="p-6 min-h-screen bg-gradient-to-r from-gray-900 to-gray-800 text-white">
@@ -291,124 +314,138 @@ const Personenwagen = () => {
           Neues Fahrzeug hinzufügen
         </button>
       </div>
-      {
-        loading? (
-         <div className="text-center text-white">Lade Fahrzeuge...</div>
- 
-        ):(
-          <div>
+      {loading ? (
+        <div className="text-center text-white">Lade Fahrzeuge...</div>
+      ) : (
+        <div>
+          <div className="max-h-[60vh] overflow-y-scroll backdrop-blur-md bg-opacity-20 bg-gray-700 rounded-lg shadow-md scrollbar-custom">
+            <table className="min-w-full backdrop-blur-md bg-opacity-20 bg-gray-700 rounded-lg shadow-md max-h-[60vh] overflow-y-scroll ">
+              <thead className="bg-gray-800 bg-opacity-50">
+                <tr>
+                  {[
+                    "TG",
+                    "Fahrzeugart",
+                    "Marke",
+                    "Modell",
+                    "PS/KW",
+                    "Aktionen",
+                  ].map((header) => (
+                    <th
+                      key={header}
+                      className="px-6 py-3 text-left text-sm font-medium uppercase tracking-wider"
+                    >
+                      {header}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {cars.map((car, index) => (
+                  <tr
+                    key={index}
+                    className="border-b border-gray-700 hover:bg-gray-800 hover:bg-opacity-50"
+                  >
+                    <td className="px-6 py-4">{car.tg || "Nicht verfügbar"}</td>
+                    <td className="px-6 py-4">
+                      {car.fahrzeugart || "Nicht verfügbar"}
+                    </td>
+                    <td className="px-6 py-4">
+                      {car.marke || "Nicht angegeben"}
+                    </td>
+                    <td className="px-6 py-4">
+                      {car.modell || "Nicht angegeben"}
+                    </td>
+                    <td className="px-6 py-4">{car.ps_kw || "Unbekannt"}</td>
+                    <td className="px-6 py-4 flex space-x-2">
+                      <button
+                        onClick={() => handleEditCar(car)}
+                        className="bg-green-500 text-white px-3 py-1 rounded-lg hover:bg-green-600"
+                      >
+                        Bearbeiten
+                      </button>
+                      <button
+                        onClick={() => handleDeleteCar(car.ID)}
+                        className="bg-red-500 text-white px-3 py-1 rounded-lg hover:bg-red-600"
+                      >
+                        Löschen
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
 
-      <div className="overflow-x-auto">
-        <table className="min-w-full backdrop-blur-md bg-opacity-20 bg-gray-700 rounded-lg shadow-md">
-          <thead className="bg-gray-800 bg-opacity-50">
-            <tr>
-              {[
-                "TG",
-                "Fahrzeugart",
-                "Marke",
-                "Modell",
-                "PS/KW",
-                "Aktionen",
-              ].map((header) => (
-                <th
-                  key={header}
-                  className="px-6 py-3 text-left text-sm font-medium uppercase tracking-wider"
-                >
-                  {header}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {cars.map((car, index) => (
-              <tr
-                key={index}
-                className="border-b border-gray-700 hover:bg-gray-800 hover:bg-opacity-50"
+          <div className="flex justify-between items-center mt-4">
+            <p className="text-white">
+              Seite {pagination.currentPage} von {pagination.totalPages}
+            </p>
+            <div className="flex space-x-2 items-center">
+              <select
+                value={limit}
+                className="bg-white text-gray-700 border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm"
+                onChange={(e) => {
+                  const newLimit = parseInt(e.target.value);
+                  setLimit(newLimit);
+                  handlePageChange(1); // Reset to the first page when limit changes
+                }}
               >
-                <td className="px-6 py-4">{car.tg || "Nicht verfügbar"}</td>
-                <td className="px-6 py-4">
-                  {car.fahrzeugart || "Nicht verfügbar"}
-                </td>
-                <td className="px-6 py-4">{car.marke || "Nicht angegeben"}</td>
-                <td className="px-6 py-4">{car.modell || "Nicht angegeben"}</td>
-                <td className="px-6 py-4">{car.ps_kw || "Unbekannt"}</td>
-                <td className="px-6 py-4 flex space-x-2">
-                  <button
-                    onClick={() => handleEditCar(car)}
-                    className="bg-green-500 text-white px-3 py-1 rounded-lg hover:bg-green-600"
-                  >
-                    Bearbeiten
-                  </button>
-                  <button
-                    onClick={() => handleDeleteCar(car.ID)}
-                    className="bg-red-500 text-white px-3 py-1 rounded-lg hover:bg-red-600"
-                  >
-                    Löschen
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+                {[5, 10, 20, 50, 100, 200, 500].map((option) => (
+                  <option key={option} value={option}>
+                    {option} Fahrzeuge pro Seite
+                  </option>
+                ))}
+              </select>
 
-      <div className="flex justify-between items-center mt-4">
-        <p className="text-white">
-          Seite {pagination.currentPage} von {pagination.totalPages}
-        </p>
-        <div className="flex space-x-2">
-        <select
-        value={limit}
-  className="bg-white text-gray-700 border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm"
-  onChange={(e) => setLimit(e.target.value)}
->
-  <option className="bg-transparent" value="5">5 Fahrzeuge pro Seite</option>
-  <option className="bg-transparent" value="10">10 Fahrzeuge pro Seite</option>
-  <option className="bg-transparent" value="20">20 Fahrzeuge pro Seite</option>
-  <option className="bg-transparent" value="50">50 Fahrzeuge pro Seite</option>
-  <option className="bg-transparent" value="100">100 Fahrzeuge pro Seite</option>
-  <option className="bg-transparent" value="200">200 Fahrzeuge pro Seite</option>
-  <option className="bg-transparent" value="500">500 Fahrzeuge pro Seite</option>
-</select>
+              <button
+                onClick={() => handlePageChange(pagination.currentPage - 1)}
+                disabled={pagination.currentPage === 1}
+                className={`bg-gray-700 text-white px-2 py-1 rounded-lg hover:bg-gray-800 ${
+                  pagination.currentPage === 1
+                    ? "cursor-not-allowed opacity-50"
+                    : ""
+                }`}
+              >
+                Vorherige
+              </button>
 
-          <button
-            onClick={() => handlePageChange(pagination.currentPage - 1)}
-            disabled={pagination.currentPage === 1}
-            className={`bg-gray-700 text-white px-2 py-1 rounded-lg hover:bg-gray-800 ${
-              pagination.currentPage === 1 ? "cursor-not-allowed" : ""
-            }`}
-          >
-            Vorherige
-          </button>
-          {Array.from({ length: pagination.totalPages }, (_, index) => (
-            <button
-              key={index + 1}
-              onClick={() => handlePageChange(index + 1)}
-              className={`${
-                pagination.currentPage === index + 1
-                  ? "bg-blue-500 text-white"
-                  : "bg-gray-700 text-white"
-              } px-2 py-1 rounded-lg hover:bg-gray-800`}
-            >
-              {index + 1}
-            </button>
-          ))}
-          <button
-            onClick={() => handlePageChange(pagination.currentPage + 1)}
-            disabled={pagination.currentPage === pagination.totalPages}
-            className={`bg-gray-700 text-white px-2 py-1 rounded-lg hover:bg-gray-800 ${
-              pagination.currentPage === pagination.totalPages
-                ? "cursor-not-allowed"
-                : ""
-            }`}
-          >
-            Nächste
-          </button>
+              <div className="flex space-x-1">
+                {getPageNumbers(
+                  pagination.currentPage,
+                  pagination.totalPages
+                ).map((page, index) => (
+                  <button
+                    key={index}
+                    onClick={() => page !== "..." && handlePageChange(page)}
+                    className={`${
+                      pagination.currentPage === page
+                        ? "bg-blue-500 text-white"
+                        : "bg-gray-700 text-white"
+                    } px-2 py-1 rounded-lg hover:bg-gray-800 ${
+                      page === "..." ? "cursor-default" : ""
+                    }`}
+                    disabled={page === "..."}
+                  >
+                    {page}
+                  </button>
+                ))}
+              </div>
+
+              <button
+                onClick={() => handlePageChange(pagination.currentPage + 1)}
+                disabled={pagination.currentPage === pagination.totalPages}
+                className={`bg-gray-700 text-white px-2 py-1 rounded-lg hover:bg-gray-800 ${
+                  pagination.currentPage === pagination.totalPages
+                    ? "cursor-not-allowed opacity-50"
+                    : ""
+                }`}
+              >
+                Nächste
+              </button>
+            </div>
+          </div>
         </div>
-      </div>
-</div>
-        )}
-      
+      )}
 
       {isModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
