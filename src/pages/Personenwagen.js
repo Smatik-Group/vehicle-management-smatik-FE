@@ -246,12 +246,25 @@ const Personenwagen = () => {
       setIsModalOpen(false);
       fetchCars(pagination.currentPage);
     } catch (error) {
-      toast.error("Failed to save car.");
-      console.error("Error saving car:", error);
+      if (
+        error.response &&
+        error.response.status === 401 &&
+        error.response.data.message.includes("TokenExpiredError")
+      ) {
+        toast.error("Session expired. Please log in again.");
+        setTimeout(() => {
+          localStorage.removeItem("token");
+          window.location.href = "/login"; // Redirect to login page after showing the toast
+        }, 2000);
+      } else {
+        toast.error("Failed to save car.");
+        console.error("Error saving car:", error);
+      }
     } finally {
       setSaving(false);
     }
   };
+
   const getPageNumbers = (currentPage, totalPages) => {
     const pageNumbers = [];
     const maxVisiblePages = 7;
