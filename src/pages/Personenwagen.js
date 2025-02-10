@@ -6,6 +6,7 @@ import Joi from "joi";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { toast } from "react-toastify";
+import CarForm from "./CarForm";
 
 // Validation schema using Joi
 const vehicleSchema = Joi.object({
@@ -20,7 +21,7 @@ const vehicleSchema = Joi.object({
   antrieb: Joi.string().optional().allow(null, "").label("Antrieb"),
   tueren: Joi.number().optional().allow(null).label("Türen"),
   sitze: Joi.number().optional().allow(null).label("Sitze"),
-  ps_kw: Joi.number().optional().allow(null, "").label("PS/KW"),
+  ps_kw: Joi.string().optional().allow(null, "").label("PS/KW"),
   hubraum_cm3: Joi.number().optional().allow(null).label("Hubraum (cm³)"),
   zylinder: Joi.number().optional().allow(null).label("Zylinder"),
   anzahl_gaenge: Joi.number().optional().allow(null).label("Anzahl Gänge"),
@@ -211,6 +212,7 @@ const Personenwagen = () => {
     const carDataToSend = isEditing
       ? (({ ID, createdAt, updatedAt, ...rest }) => rest)(currentCar)
       : currentCar;
+    console.log("carDataToSend: ", carDataToSend);
 
     const { error } = vehicleSchema.validate(carDataToSend, {
       abortEarly: false,
@@ -471,7 +473,7 @@ const Personenwagen = () => {
             <h2 className="text-xl font-bold mb-4 text-black">
               {isEditing ? "Fahrzeug bearbeiten" : "Neues Fahrzeug hinzufügen"}
             </h2>
-            <form className="space-y-4">
+            {/* <form className="space-y-4">
               {Object.keys(currentCar)
                 .filter(
                   (key) => !["createdAt", "updatedAt", "ID"].includes(key)
@@ -479,12 +481,138 @@ const Personenwagen = () => {
                 .map((key) => (
                   <div key={key}>
                     <label className="block text-sm font-medium text-black">
-                      {key}
+                      {key === "ps_kw" ? "ps/kw" : key}
                     </label>
-                    {key.includes("datum") ||
-                    key.includes("inverkehrsetzung") ||
-                    key.includes("inverkehr_von") ||
-                    key.includes("inverkehr_bis") ? (
+
+                    {key === "aufbau" ? ( // Grid-based checkbox layout for "aufbau"
+                      <div className="grid grid-cols-3 gap-4">
+                        {[
+                          { label: "Kombi", count: 9 },
+                          { label: "SUV / Geländewagen", count: 20 },
+                          { label: "Limousine", count: 25 },
+                          { label: "Cabriolet", count: 6 },
+                          { label: "Coupé", count: 12 },
+                          { label: "Kleinwagen", count: 1 },
+                          { label: "Pick-up", count: 8 },
+                          { label: "Kompaktvan / Minivan", count: 4 },
+                          { label: "Bus", count: 2 },
+                        ].map(({ label, count }) => (
+                          <div
+                            key={label}
+                            className="flex items-center space-x-2"
+                          >
+                            <input
+                              type="checkbox"
+                              id={`${key}-${label}`}
+                              value={label}
+                              checked={
+                                currentCar[key]?.includes(label) || false
+                              }
+                              onChange={(e) => {
+                                const newValue = currentCar[key] || [];
+                                if (e.target.checked) {
+                                  newValue.push(label);
+                                } else {
+                                  const index = newValue.indexOf(label);
+                                  if (index > -1) {
+                                    newValue.splice(index, 1);
+                                  }
+                                }
+                                setCurrentCar({
+                                  ...currentCar,
+                                  [key]: newValue,
+                                });
+                              }}
+                              className="w-4 h-4 text-indigo-600 border-gray-300 rounded"
+                            />
+                            <label
+                              htmlFor={`${key}-${label}`}
+                              className="ml-2 text-sm text-black flex items-center space-x-1"
+                            >
+                              <span>{label}</span>
+                              <span className="text-gray-500">({count})</span>
+                            </label>
+                          </div>
+                        ))}
+                      </div>
+                    ) : key === "treibstoff" ? ( // Checkbox group for "treibstoff"
+                      <div className="flex flex-col space-y-2">
+                        {[
+                          "Benzin",
+                          "Diesel",
+                          "Hybrid",
+                          "Mild-Hybrid Benzin/Elektro",
+                          "Mild-Hybrid Diesel/Elektro",
+                          "Plug-in hybrid Benzin/Elektro",
+                          "Plug-in hybrid Diesel/Elektro",
+                          "Voll-Hybrid Benzin/Elektro",
+                          "Voll-Hybrid Diesel/Elektro",
+                          "Elektro",
+                          "Gas",
+                          "Erdgas (CNG) / Benzin",
+                          "Flüssiggas (LPG) / Benzin",
+                          "Weitere Treibstoffe",
+                          "Bioethanol",
+                          "Wasserstoff",
+                        ].map((option) => (
+                          <div key={option} className="flex items-center">
+                            <input
+                              type="checkbox"
+                              id={`${key}-${option}`}
+                              value={option}
+                              checked={
+                                currentCar[key]?.includes(option) || false
+                              }
+                              onChange={(e) => {
+                                const newValue = currentCar[key] || [];
+                                if (e.target.checked) {
+                                  newValue.push(option);
+                                } else {
+                                  const index = newValue.indexOf(option);
+                                  if (index > -1) {
+                                    newValue.splice(index, 1);
+                                  }
+                                }
+                                setCurrentCar({
+                                  ...currentCar,
+                                  [key]: newValue,
+                                });
+                              }}
+                              className="w-4 h-4 text-indigo-600 border-gray-300 rounded"
+                            />
+                            <label
+                              htmlFor={`${key}-${option}`}
+                              className="ml-2 text-sm text-black"
+                            >
+                              {option}
+                            </label>
+                          </div>
+                        ))}
+                      </div>
+                    ) : key === "antrieb" ? (
+                      <select
+                        value={currentCar[key] || ""}
+                        onChange={(e) =>
+                          setCurrentCar({
+                            ...currentCar,
+                            [key]: e.target.value,
+                          })
+                        }
+                        className={`w-full p-2 border border-gray-300 rounded-lg text-black ${
+                          errors[key] ? "border-red-500" : ""
+                        }`}
+                      >
+                        <option value="">Bitte auswählen</option>
+                        <option value="Allrad">Allrad</option>
+                        <option value="Geländegängig">Geländegängig</option>
+                        <option value="Hinterrad">Hinterrad</option>
+                        <option value="Raupenantrieb">Raupenantrieb</option>
+                        <option value="Vorderrad">Vorderrad</option>
+                      </select>
+                    ) : key.includes("datum") ||
+                      key.includes("inverkehrsetzung") ||
+                      key.includes("inverkehr_von") ||
+                      key.includes("inverkehr_bis") ? (
                       <DatePicker
                         selected={currentCar[key]}
                         onChange={handleDateChange(key)}
@@ -522,7 +650,12 @@ const Personenwagen = () => {
               {errors.general && (
                 <p className="text-red-500 text-sm">{errors.general}</p>
               )}
-            </form>
+            </form> */}
+            <CarForm
+              currentCar={currentCar}
+              setCurrentCar={setCurrentCar}
+              errors={errors}
+            />
             <div className="mt-4 flex justify-end space-x-4">
               <button
                 onClick={handleCancel}
