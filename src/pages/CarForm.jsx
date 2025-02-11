@@ -1,4 +1,5 @@
 import React from "react";
+import DatePicker from "react-datepicker";
 
 // Constants for form options
 const AUFBAU_OPTIONS = [
@@ -39,13 +40,21 @@ const ANTRIEB_OPTIONS = [
   "Raupenantrieb",
   "Vorderrad",
 ];
+const GEARS = [
+  "Automat",
+  "Halbautomatisches Getriebe",
+  "Stufenlos ",
+  "Schaltgetriebe manuell",
+];
 const EXCLUDED_FIELDS = ["createdAt", "updatedAt", "ID"];
 
 const CarForm = ({ currentCar, setCurrentCar, errors = {} }) => {
   const handleInputChange = (key, value) => {
     setCurrentCar({ ...currentCar, [key]: value });
   };
-
+  const handleDateChange = (key) => (date) => {
+    setCurrentCar({ ...currentCar, [key]: date });
+  };
   const CheckboxGroup = ({ field, options }) => (
     <div className="grid grid-cols-3 gap-4">
       {options.map((option) => (
@@ -67,12 +76,6 @@ const CarForm = ({ currentCar, setCurrentCar, errors = {} }) => {
     </div>
   );
 
-  const isDateField = (key) =>
-    key.includes("datum") ||
-    key.includes("inverkehrsetzung") ||
-    key.includes("inverkehr_von") ||
-    key.includes("inverkehr_bis");
-
   return (
     <form className="space-y-4">
       {Object.keys(currentCar)
@@ -80,14 +83,19 @@ const CarForm = ({ currentCar, setCurrentCar, errors = {} }) => {
         .map((key) => (
           <div key={key} className="mb-4">
             <label className="block text-sm font-medium text-black">
-              {key === "ps_kw" ? "PS/KW" : key.replace(/_/g, " ")}
+              {key === "ps_kw"
+                ? "PS/KW"
+                : key === "chassisnummer"
+                ? "Stammnummer"
+                : key.replace(/_/g, " ")}
             </label>
+
             {key === "aufbau" || key === "treibstoff" ? (
               <CheckboxGroup
                 field={key}
                 options={key === "aufbau" ? AUFBAU_OPTIONS : TREIBSTOFF_OPTIONS}
               />
-            ) : key === "treibstoff" || key === "antrieb" ? (
+            ) : key === "treibstoff" || key === "antrieb" || key === "gears" ? (
               <select
                 value={currentCar[key] || ""}
                 onChange={(e) => handleInputChange(key, e.target.value)}
@@ -100,27 +108,33 @@ const CarForm = ({ currentCar, setCurrentCar, errors = {} }) => {
                 </option>
                 {(key === "treibstoff"
                   ? TREIBSTOFF_OPTIONS
-                  : ANTRIEB_OPTIONS
+                  : key === "antrieb"
+                  ? ANTRIEB_OPTIONS
+                  : GEARS
                 ).map((option) => (
                   <option key={option} value={option}>
                     {option}
                   </option>
                 ))}
               </select>
-            ) : isDateField(key) ? (
-              <input
-                type="date"
-                value={currentCar[key] || ""}
-                onChange={(e) => handleInputChange(key, e.target.value)}
-                className={`w-full p-2 border rounded-lg text-black ${
-                  errors[key] ? "border-red-500" : "border-gray-300"
-                }`}
+            ) : key.includes("datum") ||
+              key.includes("inverkehrsetzung") ||
+              key.includes("inverkehr_von") ||
+              key.includes("inverkehr_bis") ? (
+              <DatePicker
+                selected={currentCar[key] ? new Date(currentCar[key]) : null}
+                onChange={handleDateChange(key)}
+                dateFormat="MM/yyyy"
+                showMonthYearPicker
+                className="w-full p-2 border border-gray-300 rounded-lg text-black"
+                placeholderText="Monat und Jahr auswählen"
+                minDate={new Date(2013, 0)} // January 2013
               />
             ) : (
               <input
                 type={typeof currentCar[key] === "number" ? "number" : "text"}
                 value={currentCar[key] || ""}
-                onChange={(e) => handleInputChange(key, e.target.value)}
+                onChange={(e) => handleInputChange(key, e.target.value)} // Correct: handleInputChange
                 className={`w-full p-2 border rounded-lg text-black ${
                   errors[key] ? "border-red-500" : "border-gray-300"
                 }`}
