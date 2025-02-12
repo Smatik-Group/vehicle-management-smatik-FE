@@ -25,6 +25,8 @@ const vehicleSchema = Joi.object({
   hubraum_cm3: Joi.number().optional().allow(null).label("Hubraum (cm³)"),
   zylinder: Joi.number().optional().allow(null).label("Zylinder"),
   gears: Joi.string().optional().allow(null).label("Gears"),
+  anzahl_gaenge: Joi.number().optional().allow(null).label("Anzahl Gänge"),
+
   inverkehrsetzung: Joi.date()
     .optional()
     .allow(null, "")
@@ -71,6 +73,7 @@ const getInitialCar = (data = {}) => {
     hubraum_cm3: null,
     zylinder: null,
     gears: null,
+    anzahl_gaenge: null,
     inverkehrsetzung: null,
     co2_emission_g_km: null,
     energieetikette: "",
