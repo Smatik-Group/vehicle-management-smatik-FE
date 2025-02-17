@@ -47,6 +47,10 @@ const vehicleSchema = Joi.object({
     .allow(null)
     .label("Verbrauch (l/100km)"),
   euro_norm: Joi.string().optional().allow(null, "").label("Euro Norm"),
+  eu_typengenehmigung: Joi.string()
+    .optional()
+    .allow(null, "")
+    .label("Eu Typengenehmigung"),
   chassisnummer: Joi.string().optional().allow(null, "").label("Chassisnummer"),
   laenge: Joi.number().optional().allow(null).label("Länge"),
   breite: Joi.number().optional().allow(null).label("Breite"),
@@ -83,6 +87,7 @@ const getInitialCar = (data = {}) => {
     verbrauch_l_100km: null,
     euro_norm: "",
     chassisnummer: null,
+    eu_typengenehmigung: null,
     laenge: null,
     breite: null,
     hoehe: null,
