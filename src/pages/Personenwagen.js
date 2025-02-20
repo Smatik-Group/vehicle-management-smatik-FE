@@ -26,7 +26,14 @@ const vehicleSchema = Joi.object({
   zylinder: Joi.number().optional().allow(null).label("Zylinder"),
   gears: Joi.string().optional().allow(null).label("Gears"),
   anzahl_gaenge: Joi.number().optional().allow(null).label("Anzahl Gänge"),
-
+  serienmaesigge_ausstatung: Joi.string()
+    .optional()
+    .allow(null, "")
+    .label("Serienmäßige Ausstattung"),
+  optionale_ausstatung: Joi.string()
+    .optional()
+    .allow(null, "")
+    .label("Optionale ausstatung "),
   inverkehrsetzung: Joi.date()
     .optional()
     .allow(null, "")
@@ -99,6 +106,7 @@ const getInitialCar = (data = {}) => {
     lizenzkategorie: "",
     motorbauart: "",
     serienmaesigge_ausstatung: "",
+    optionale_ausstatung: "",
     erstellungsdatum: null,
     aktualisierungsdatum: null,
     neupreis: null,
