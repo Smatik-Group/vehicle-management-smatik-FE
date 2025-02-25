@@ -128,7 +128,7 @@ const CarForm = ({ currentCar, setCurrentCar, errors = {} }) => {
                 showMonthYearPicker
                 className="w-full p-2 border border-gray-300 rounded-lg text-black"
                 placeholderText="Monat und Jahr auswählen"
-                minDate={new Date(2000, 0)} // January 2013
+                minDate={new Date(1800, 0)} // January 2013
               />
             ) : (
               <input
